@@ -1,0 +1,66 @@
+run:
+  deadline: 1m
+  tests: true
+
+  skip-dirs-use-default: true
+  skip-dirs:
+    - bin$
+    - \.git$
+    - misc$
+    - spec$
+    - pkg$
+    - common$
+
+  skip-files:
+    - "_easyjson.go"
+    - "jwt_example.go"
+    - "pb.go"
+
+linters-settings:
+    cyclop:
+      max-complexity: 12
+
+linters:
+  enable:
+    - bodyclose
+    - dupl
+    - goconst
+    - gocritic
+    - gocyclo
+    - nakedret
+    - prealloc
+    - stylecheck
+    - typecheck
+    - unconvert
+    - unparam
+    - cyclop
+    - decorder
+    - dogsled
+    - dupl
+    - dupword
+    - durationcheck
+    - errchkjson
+    - errname
+    - errorlint
+    - misspell
+    - nolintlint 
+    - nonamedreturns
+    - whitespace
+    - wastedassign 
+  fast: false
+
+issues:
+  max-issues-per-linter: 0
+  max-same-issues: 0
+  exclude:
+    - "should have comment"
+    - "always receives"
+    - "parameter .* is always"
+    - "comment on exported .* should be of the form"
+  exclude-rules:
+    - path: (.+)_test.go
+      linters:
+        - errcheck
+
+output:
+  format: colored-line-number
