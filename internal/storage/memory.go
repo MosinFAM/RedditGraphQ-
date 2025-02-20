@@ -2,10 +2,11 @@ package storage
 
 import (
 	"errors"
-	"graphql-posts/internal/models"
 	"log"
 	"sync"
 	"time"
+
+	"github.com/MosinFAM/graphql-posts/internal/models"
 
 	"github.com/google/uuid"
 )

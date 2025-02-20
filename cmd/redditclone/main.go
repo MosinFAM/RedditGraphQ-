@@ -1,12 +1,13 @@
 package main
 
 import (
-	"graphql-posts/internal/db"
-	"graphql-posts/internal/graph"
-	"graphql-posts/internal/storage"
 	"log"
 	"net/http"
 	"os"
+
+	"github.com/MosinFAM/graphql-posts/internal/db"
+	"github.com/MosinFAM/graphql-posts/internal/graph"
+	"github.com/MosinFAM/graphql-posts/internal/storage"
 
 	"github.com/99designs/gqlgen/graphql/handler"
 	"github.com/99designs/gqlgen/graphql/handler/transport"

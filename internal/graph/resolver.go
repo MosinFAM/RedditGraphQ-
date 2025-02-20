@@ -5,9 +5,10 @@ package graph
 import (
 	"context"
 	"errors"
-	"graphql-posts/internal/storage"
 	"log"
 	"sync"
+
+	"github.com/MosinFAM/graphql-posts/internal/storage"
 )
 
 type Resolver struct {

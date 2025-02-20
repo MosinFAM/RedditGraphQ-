@@ -4,9 +4,10 @@ import (
 	"database/sql"
 	"errors"
 	"fmt"
-	"graphql-posts/internal/models"
 	"log"
 	"time"
+
+	"github.com/MosinFAM/graphql-posts/internal/models"
 
 	"github.com/google/uuid"
 	"github.com/lib/pq"
