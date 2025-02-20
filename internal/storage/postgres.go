@@ -3,27 +3,25 @@ package storage
 import (
 	"database/sql"
 	"errors"
-	"graphql-posts/internal/app/models"
+	"fmt"
+	"graphql-posts/internal/models"
 	"log"
-	"sync"
 	"time"
 
 	"github.com/google/uuid"
+	"github.com/lib/pq"
 	_ "github.com/lib/pq"
 )
 
 // PostgresStorage - хранилище в PostgreSQL
 type PostgresStorage struct {
-	DB            *sql.DB
-	subscriptions map[string][]chan *models.Comment // Для хранения подписчиков
-	mu            sync.RWMutex
+	DB         *sql.DB
+	DataSource string
 }
 
 // NewPostgresStorage создаёт экземпляр PostgreSQL-хранилища
-func NewPostgresStorage(db *sql.DB) *PostgresStorage {
-	return &PostgresStorage{
-		DB:            db,
-		subscriptions: make(map[string][]chan *models.Comment)}
+func NewPostgresStorage(db *sql.DB, dataSource string) *PostgresStorage {
+	return &PostgresStorage{DB: db, DataSource: dataSource}
 }
 
 // InitDB инициализирует таблицы в БД
@@ -132,11 +130,11 @@ func (s *PostgresStorage) AddComment(postID string, parentID *string, content st
 		return nil, err
 	}
 
-	// Уведомление подписчиков
-	s.mu.Lock()
-	defer s.mu.Unlock()
-	for _, ch := range s.subscriptions[postID] {
-		ch <- &comment
+	// Отправляем уведомление в PostgreSQL NOTIFY
+	notifyQuery := fmt.Sprintf("NOTIFY comments_channel, '%s|%s'", comment.PostID, comment.Content)
+	_, err = s.DB.Exec(notifyQuery)
+	if err != nil {
+		return nil, err
 	}
 
 	return &comment, nil
@@ -166,13 +164,55 @@ func (s *PostgresStorage) GetCommentsByPostID(postID string, limit, offset int) 
 }
 
 func (s *PostgresStorage) SubscribeToComments(postID string) (<-chan *models.Comment, error) {
-	s.mu.Lock()
-	defer s.mu.Unlock()
-
 	ch := make(chan *models.Comment)
 
-	// Добавляем подписчика в список
-	s.subscriptions[postID] = append(s.subscriptions[postID], ch)
+	// Подключаемся к LISTEN через pq.Listener
+	listener := pq.NewListener(s.DataSource, 10*time.Second, time.Minute, func(ev pq.ListenerEventType, err error) {
+		if err != nil {
+			log.Println("Postgres Listener error:", err)
+		}
+	})
+
+	err := listener.Listen("comments_channel")
+	if err != nil {
+		return nil, fmt.Errorf("failed to listen on comments_channel: %w", err)
+	}
+
+	// Горутина для получения уведомлений
+	go func() {
+		defer close(ch)
+		defer listener.Close()
+
+		for {
+			select {
+			case <-time.After(90 * time.Second):
+				// Проверяем соединение каждые 90 секунд
+				err := listener.Ping()
+				if err != nil {
+					log.Println("Postgres Listener ping error:", err)
+					return
+				}
+
+			case notification := <-listener.Notify:
+				if notification == nil {
+					continue
+				}
+
+				// Разбираем сообщение "postID|content"
+				var notifPostID, content string
+				fmt.Sscanf(notification.Extra, "%s|%s", &notifPostID, &content)
+
+				// Если подписка на нужный пост, отправляем в канал
+				if notifPostID == postID {
+					ch <- &models.Comment{
+						PostID:    notifPostID,
+						Content:   content,
+						CreatedAt: time.Now(),
+					}
+				}
+			}
+		}
+	}()
 
 	return ch, nil
 }

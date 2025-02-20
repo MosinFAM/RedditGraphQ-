@@ -9,6 +9,6 @@ RUN go mod tidy
 
 COPY . .
 
-RUN go build -o main ./cmd/server
+RUN go build -o main ./cmd/redditclone
 
 CMD ["/app/main"]

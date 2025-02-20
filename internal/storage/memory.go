@@ -2,7 +2,7 @@ package storage
 
 import (
 	"errors"
-	"graphql-posts/internal/app/models"
+	"graphql-posts/internal/models"
 	"log"
 	"sync"
 	"time"

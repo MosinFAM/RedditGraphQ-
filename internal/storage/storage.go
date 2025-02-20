@@ -1,6 +1,6 @@
 package storage
 
-import "graphql-posts/internal/app/models"
+import "graphql-posts/internal/models"
 
 // Storage - интерфейс для всех типов хранилищ (in-memory и PostgreSQL)
 type Storage interface {

@@ -5,7 +5,7 @@ package graph
 import (
 	"context"
 	"errors"
-	"graphql-posts/internal/app/storage"
+	"graphql-posts/internal/storage"
 	"log"
 	"sync"
 )

@@ -1,9 +1,9 @@
 package main
 
 import (
-	"graphql-posts/internal/app/db"
-	"graphql-posts/internal/app/storage"
+	"graphql-posts/internal/db"
 	"graphql-posts/internal/graph"
+	"graphql-posts/internal/storage"
 	"log"
 	"net/http"
 	"os"
@@ -26,7 +26,7 @@ func main() {
 			log.Fatal("Failed to connect to DB:", err)
 		}
 
-		pgStore := storage.NewPostgresStorage(dbConn)
+		pgStore := storage.NewPostgresStorage(dbConn, "postgres://user:password@db:5432/postsdb?sslmode=disable")
 		if err := pgStore.InitDB(); err != nil {
 			log.Fatal("Failed to initialize DB:", err)
 		}
