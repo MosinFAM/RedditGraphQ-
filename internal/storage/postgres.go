@@ -53,11 +53,11 @@ func (s *PostgresStorage) InitDB() error {
 }
 
 // GetAllPosts возвращает все посты
-func (s *PostgresStorage) GetAllPosts() []models.Post {
+func (s *PostgresStorage) GetAllPosts() ([]models.Post, error) {
 	rows, err := s.DB.Query("SELECT id, title, content, allow_comments FROM posts")
 	if err != nil {
 		log.Println(err)
-		return nil
+		return nil, err
 	}
 	defer rows.Close()
 	log.Println("Работаем с бд")
@@ -66,27 +66,27 @@ func (s *PostgresStorage) GetAllPosts() []models.Post {
 		var post models.Post
 		if err := rows.Scan(&post.ID, &post.Title, &post.Content, &post.AllowComments); err != nil {
 			log.Println(err)
-			return nil
+			return nil, err
 		}
 		posts = append(posts, post)
 	}
-	return posts
+	return posts, nil
 }
 
 // GetPostByID возвращает пост по ID
-func (s *PostgresStorage) GetPostByID(id string) *models.Post {
+func (s *PostgresStorage) GetPostByID(id string) (*models.Post, error) {
 	var post models.Post
 	err := s.DB.QueryRow("SELECT id, title, content, allow_comments FROM posts WHERE id=$1", id).
 		Scan(&post.ID, &post.Title, &post.Content, &post.AllowComments)
 	if err != nil {
 		log.Println(err)
-		return nil
+		return nil, err
 	}
-	return &post
+	return &post, nil
 }
 
 // AddPost добавляет новый пост в БД
-func (s *PostgresStorage) AddPost(title, content string, allowComments bool) models.Post {
+func (s *PostgresStorage) AddPost(title, content string, allowComments bool) (models.Post, error) {
 	post := models.Post{
 		ID:            uuid.New().String(),
 		Title:         title,
@@ -97,9 +97,9 @@ func (s *PostgresStorage) AddPost(title, content string, allowComments bool) mod
 		post.ID, post.Title, post.Content, post.AllowComments)
 	if err != nil {
 		log.Println("DB Insert Error:", err)
-		return models.Post{}
+		return models.Post{}, err
 	}
-	return post
+	return post, nil
 }
 
 func (s *PostgresStorage) AddComment(postID string, parentID *string, content string) (*models.Comment, error) {

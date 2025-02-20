@@ -3,12 +3,14 @@ package db
 import (
 	"database/sql"
 	"log"
+	"os"
 
 	_ "github.com/lib/pq"
 )
 
 func Connect() (*sql.DB, error) {
-	connStr := "postgres://user:password@db:5432/postsdb?sslmode=disable"
+	dsn := os.Getenv("DATABASE_URL")
+	connStr := dsn
 	db, err := sql.Open("postgres", connStr)
 	if err != nil {
 		return nil, err

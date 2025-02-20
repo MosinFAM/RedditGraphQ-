@@ -7,6 +7,7 @@ services:
       - "8080:8080"
     environment:
       STORAGE_TYPE: ${STORAGE_TYPE:-in-memory}
+      DATABASE_URL: postgres://user:password@db:5432/postsdb?sslmode=disable
     depends_on:
       - db
 

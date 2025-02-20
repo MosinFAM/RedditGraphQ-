@@ -28,31 +28,34 @@ func NewMemoryStorage() *MemoryStorage {
 }
 
 // GetAllPosts возвращает все посты
-func (s *MemoryStorage) GetAllPosts() []models.Post {
+func (s *MemoryStorage) GetAllPosts() ([]models.Post, error) {
 	s.mu.RLock()
 	defer s.mu.RUnlock()
 	log.Println("Работаем с мапами")
+	if len(s.posts) == 0 {
+		return nil, errors.New("no posts found")
+	}
 	var result []models.Post
 	for _, post := range s.posts {
 		result = append(result, post)
 	}
-	return result
+	return result, nil
 }
 
 // GetPostByID возвращает пост по ID
-func (s *MemoryStorage) GetPostByID(id string) *models.Post {
+func (s *MemoryStorage) GetPostByID(id string) (*models.Post, error) {
 	s.mu.RLock()
 	defer s.mu.RUnlock()
 
 	post, exists := s.posts[id]
 	if !exists {
-		return nil
+		return nil, errors.New("post not found")
 	}
-	return &post
+	return &post, nil
 }
 
 // AddPost добавляет новый пост
-func (s *MemoryStorage) AddPost(title, content string, allowComments bool) models.Post {
+func (s *MemoryStorage) AddPost(title, content string, allowComments bool) (models.Post, error) {
 	s.mu.Lock()
 	defer s.mu.Unlock()
 
@@ -63,7 +66,7 @@ func (s *MemoryStorage) AddPost(title, content string, allowComments bool) model
 		AllowComments: allowComments,
 	}
 	s.posts[post.ID] = post
-	return post
+	return post, nil
 }
 
 // AddComment добавляет комментарий в память
@@ -119,6 +122,11 @@ func (s *MemoryStorage) AddComment(postID string, parentID *string, content stri
 func (s *MemoryStorage) GetCommentsByPostID(postID string, limit, offset int) ([]*models.Comment, error) {
 	s.mu.RLock()
 	defer s.mu.RUnlock()
+
+	// Проверка на существование поста
+	if _, exists := s.posts[postID]; !exists {
+		return nil, errors.New("post not found")
+	}
 
 	comments, exists := s.comments[postID]
 	if !exists {

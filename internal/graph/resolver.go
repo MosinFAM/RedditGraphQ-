@@ -18,7 +18,7 @@ type Resolver struct {
 
 // AddPost is the resolver for the addPost field.
 func (r *mutationResolver) AddPost(ctx context.Context, title string, content string, allowComments bool) (*Post, error) {
-	modelPost := r.Storage.AddPost(title, content, allowComments)
+	modelPost, _ := r.Storage.AddPost(title, content, allowComments)
 	if modelPost.ID == "" {
 		return nil, errors.New("failed to create post")
 	}
@@ -34,7 +34,7 @@ func (r *mutationResolver) AddPost(ctx context.Context, title string, content st
 
 // Posts is the resolver for the posts field.
 func (r *queryResolver) Posts(ctx context.Context) ([]*Post, error) {
-	modelPosts := r.Storage.GetAllPosts()
+	modelPosts, _ := r.Storage.GetAllPosts()
 
 	var posts []*Post
 
@@ -52,7 +52,7 @@ func (r *queryResolver) Posts(ctx context.Context) ([]*Post, error) {
 
 // Post is the resolver for the post field.
 func (r *queryResolver) Post(ctx context.Context, id string) (*Post, error) {
-	modelPost := r.Storage.GetPostByID(id)
+	modelPost, _ := r.Storage.GetPostByID(id)
 	post := &Post{
 		ID:            modelPost.ID,
 		Title:         modelPost.Title,
@@ -64,7 +64,7 @@ func (r *queryResolver) Post(ctx context.Context, id string) (*Post, error) {
 }
 
 func (r *mutationResolver) AddComment(ctx context.Context, postID string, parentID *string, content string) (*Comment, error) {
-	post := r.Storage.GetPostByID(postID)
+	post, _ := r.Storage.GetPostByID(postID)
 
 	if !post.AllowComments {
 		return nil, errors.New("comments are disabled for this post")
@@ -182,22 +182,6 @@ func (r *subscriptionResolver) CommentAdded(ctx context.Context, postID string) 
 
 	return ch, nil
 }
-
-// // NotifySubscribers уведомляет подписчиков о новом комментарии
-// func (r *subscriptionResolver) NotifySubscribers(postID string, comment *Comment) {
-// 	r.mu.Lock()
-// 	defer r.mu.Unlock()
-
-// 	if subscribers, exists := r.subscriptions[postID]; exists {
-// 		for _, ch := range subscribers {
-// 			select {
-// 			case ch <- comment:
-// 			default:
-// 				// Если канал переполнен, пропускаем
-// 			}
-// 		}
-// 	}
-// }
 
 // Mutation returns MutationResolver implementation.
 func (r *Resolver) Mutation() MutationResolver { return &mutationResolver{r} }
