@@ -34,7 +34,7 @@
 ## Запуск контейнера
 
 ```bash
-sudo STORAGE_TYPE=postgres docker compose -f build/docker-compose.yml up -d --build
+STORAGE_TYPE=postgres docker compose -f build/docker-compose.yml up -d --build
 ```
 
 По умолчанию STORAGE_TYPE=in-memory.

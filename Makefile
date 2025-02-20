@@ -5,11 +5,8 @@ build:
 
 .PHONY: test
 test:
-	go clean -testcache
-	go test -v -coverpkg=./... -coverprofile=coverage.out -covermode=count ./internal/graph && \
-	go tool cover -func=coverage.out | grep -v 'generated.go' | awk '{print $$3}' && \
+	go test ./... -coverprofile=coverage.out
 	go tool cover -html=coverage.out -o cover.html
-
 
 .PHONY: lint
 lint:
