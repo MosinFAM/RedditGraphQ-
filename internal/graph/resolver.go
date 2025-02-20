@@ -18,10 +18,17 @@ type Resolver struct {
 
 // AddPost is the resolver for the addPost field.
 func (r *mutationResolver) AddPost(ctx context.Context, title string, content string, allowComments bool) (*Post, error) {
-	modelPost, _ := r.Storage.AddPost(title, content, allowComments)
+	log.Printf("Adding post: title=%s", title)
+	modelPost, err := r.Storage.AddPost(title, content, allowComments)
+	if err != nil {
+		log.Printf("Failed to create post: %v", err)
+		return nil, err
+	}
 	if modelPost.ID == "" {
+		log.Println("Post ID is empty, creation failed")
 		return nil, errors.New("failed to create post")
 	}
+
 	post := &Post{
 		ID:            modelPost.ID,
 		Title:         modelPost.Title,
@@ -29,12 +36,18 @@ func (r *mutationResolver) AddPost(ctx context.Context, title string, content st
 		AllowComments: modelPost.AllowComments,
 	}
 
+	log.Printf("Post created successfully: ID=%s", post.ID)
 	return post, nil
 }
 
 // Posts is the resolver for the posts field.
 func (r *queryResolver) Posts(ctx context.Context) ([]*Post, error) {
-	modelPosts, _ := r.Storage.GetAllPosts()
+	log.Println("Fetching all posts")
+	modelPosts, err := r.Storage.GetAllPosts()
+	if err != nil {
+		log.Printf("Failed to fetch posts: %v", err)
+		return nil, err
+	}
 
 	var posts []*Post
 
@@ -52,7 +65,13 @@ func (r *queryResolver) Posts(ctx context.Context) ([]*Post, error) {
 
 // Post is the resolver for the post field.
 func (r *queryResolver) Post(ctx context.Context, id string) (*Post, error) {
-	modelPost, _ := r.Storage.GetPostByID(id)
+	log.Printf("Fetching post with ID: %s", id)
+	modelPost, err := r.Storage.GetPostByID(id)
+	if err != nil {
+		log.Printf("Failed to fetch post: %v", err)
+		return nil, err
+	}
+
 	post := &Post{
 		ID:            modelPost.ID,
 		Title:         modelPost.Title,
@@ -64,14 +83,21 @@ func (r *queryResolver) Post(ctx context.Context, id string) (*Post, error) {
 }
 
 func (r *mutationResolver) AddComment(ctx context.Context, postID string, parentID *string, content string) (*Comment, error) {
-	post, _ := r.Storage.GetPostByID(postID)
+	log.Printf("Adding comment to post ID: %s", postID)
+	post, err := r.Storage.GetPostByID(postID)
+	if err != nil {
+		log.Printf("Failed to fetch post: %v", err)
+		return nil, err
+	}
 
 	if !post.AllowComments {
+		log.Println("Comments are disabled for this post")
 		return nil, errors.New("comments are disabled for this post")
 	}
 
 	modelComment, err := r.Storage.AddComment(postID, parentID, content)
 	if err != nil {
+		log.Printf("Failed to add comment: %v", err)
 		return nil, err
 	}
 
@@ -83,6 +109,7 @@ func (r *mutationResolver) AddComment(ctx context.Context, postID string, parent
 		CreatedAt: modelComment.CreatedAt.String(),
 	}
 
+	log.Printf("Comment added successfully: ID=%s", comment.ID)
 	// Отправка комментария в подписки
 	go func() {
 		r.mu.Lock()
@@ -98,10 +125,10 @@ func (r *mutationResolver) AddComment(ctx context.Context, postID string, parent
 }
 
 func (r *queryResolver) Comments(ctx context.Context, postID string, limit, offset int) ([]*Comment, error) {
+	log.Printf("Fetching comments for post ID: %s", postID)
 	modelComments, err := r.Storage.GetCommentsByPostID(postID, limit, offset)
-
 	if err != nil {
-		log.Println(err)
+		log.Printf("Failed to fetch comments: %v", err)
 		return nil, err
 	}
 
@@ -124,8 +151,10 @@ func (r *queryResolver) Comments(ctx context.Context, postID string, limit, offs
 
 // Subscription resolver: подписка на новые комментарии
 func (r *subscriptionResolver) CommentAdded(ctx context.Context, postID string) (<-chan *Comment, error) {
+	log.Printf("Subscribing to comments for post ID: %s", postID)
 	modelCh, err := r.Storage.SubscribeToComments(postID)
 	if err != nil {
+		log.Printf("Failed to subscribe: %v", err)
 		return nil, err
 	}
 
@@ -137,9 +166,11 @@ func (r *subscriptionResolver) CommentAdded(ctx context.Context, postID string) 
 		for {
 			select {
 			case <-ctx.Done():
+				log.Println("Subscription cancelled")
 				return // Контекст отменён — просто выходим из горутины
 			case comment, ok := <-modelCh:
 				if !ok {
+					log.Println("Subscription channel closed")
 					return // Если modelCh закрыт, выходим из горутины
 				}
 				convertedComment := &Comment{

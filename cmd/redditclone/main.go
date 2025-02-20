@@ -35,7 +35,7 @@ func main() {
 		}
 
 		store = pgStore
-	} else if storeType == "in-memory" {
+	} else {
 		store = storage.NewMemoryStorage()
 	}
 

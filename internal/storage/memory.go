@@ -31,14 +31,17 @@ func NewMemoryStorage() *MemoryStorage {
 func (s *MemoryStorage) GetAllPosts() ([]models.Post, error) {
 	s.mu.RLock()
 	defer s.mu.RUnlock()
-	log.Println("Работаем с мапами")
+	log.Println("Fetching all posts from memory")
 	if len(s.posts) == 0 {
+		log.Println("No posts found")
 		return nil, errors.New("no posts found")
 	}
 	var result []models.Post
 	for _, post := range s.posts {
 		result = append(result, post)
 	}
+
+	log.Println("Successfully fetched posts")
 	return result, nil
 }
 
@@ -47,8 +50,10 @@ func (s *MemoryStorage) GetPostByID(id string) (*models.Post, error) {
 	s.mu.RLock()
 	defer s.mu.RUnlock()
 
+	log.Printf("Fetching post with ID: %s", id)
 	post, exists := s.posts[id]
 	if !exists {
+		log.Println("Post not found")
 		return nil, errors.New("post not found")
 	}
 	return &post, nil
@@ -65,6 +70,7 @@ func (s *MemoryStorage) AddPost(title, content string, allowComments bool) (mode
 		Content:       content,
 		AllowComments: allowComments,
 	}
+	log.Printf("Adding new post: %+v", post)
 	s.posts[post.ID] = post
 	return post, nil
 }
@@ -74,8 +80,10 @@ func (s *MemoryStorage) AddComment(postID string, parentID *string, content stri
 	s.mu.Lock()
 	defer s.mu.Unlock()
 
+	log.Printf("Adding comment to post %s", postID)
 	post, exists := s.posts[postID]
 	if !exists {
+		log.Println("Post not found")
 		return nil, errors.New("post not found")
 	}
 	if !post.AllowComments {
@@ -98,6 +106,7 @@ func (s *MemoryStorage) AddComment(postID string, parentID *string, content stri
 
 	s.comments[postID] = append(s.comments[postID], comment)
 
+	log.Println("Notificating...")
 	// Уведомляем подписчиков
 	go func() {
 		s.mu.Lock()
@@ -115,6 +124,7 @@ func (s *MemoryStorage) AddComment(postID string, parentID *string, content stri
 		}
 	}()
 
+	log.Printf("Comment added: %+v", comment)
 	return &comment, nil
 }
 
@@ -123,13 +133,16 @@ func (s *MemoryStorage) GetCommentsByPostID(postID string, limit, offset int) ([
 	s.mu.RLock()
 	defer s.mu.RUnlock()
 
+	log.Printf("Getting comment by post id %s", postID)
 	// Проверка на существование поста
 	if _, exists := s.posts[postID]; !exists {
+		log.Println("Post not found")
 		return nil, errors.New("post not found")
 	}
 
 	comments, exists := s.comments[postID]
 	if !exists {
+		log.Println("No comments found for this post")
 		return nil, errors.New("no comments found for this post")
 	}
 
@@ -155,10 +168,12 @@ func (s *MemoryStorage) SubscribeToComments(postID string) (<-chan *models.Comme
 	s.mu.Lock()
 	defer s.mu.Unlock()
 
+	log.Printf("Subscribing to comments for post %s", postID)
 	ch := make(chan *models.Comment, 1)
 
 	// Добавляем подписчика в список
 	s.subscriptions[postID] = append(s.subscriptions[postID], ch)
 
+	log.Println("Listening for comments on comments_channel")
 	return ch, nil
 }
