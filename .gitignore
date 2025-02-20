@@ -1,5 +1,5 @@
 coverage.out
-cover.html
+*cover.html
 *.DS_Store
 *bin/
 vendor
