@@ -19,12 +19,10 @@ type PostgresStorage struct {
 	DataSource string
 }
 
-// NewPostgresStorage создаёт экземпляр PostgreSQL-хранилища
 func NewPostgresStorage(db *sql.DB, dataSource string) *PostgresStorage {
 	return &PostgresStorage{DB: db, DataSource: dataSource}
 }
 
-// GetAllPosts возвращает все посты
 func (s *PostgresStorage) GetAllPosts() ([]models.Post, error) {
 	log.Println("Fetching all posts from database")
 	rows, err := s.DB.Query("SELECT id, title, content, allow_comments FROM posts")
@@ -47,7 +45,6 @@ func (s *PostgresStorage) GetAllPosts() ([]models.Post, error) {
 	return posts, nil
 }
 
-// GetPostByID возвращает пост по ID
 func (s *PostgresStorage) GetPostByID(id string) (*models.Post, error) {
 	log.Printf("Fetching post with ID: %s", id)
 	var post models.Post
@@ -60,7 +57,6 @@ func (s *PostgresStorage) GetPostByID(id string) (*models.Post, error) {
 	return &post, nil
 }
 
-// AddPost добавляет новый пост в БД
 func (s *PostgresStorage) AddPost(title, content string, allowComments bool) (models.Post, error) {
 	post := models.Post{
 		ID:            uuid.New().String(),
@@ -186,8 +182,6 @@ func (s *PostgresStorage) SubscribeToComments(postID string) (<-chan *models.Com
 				if _, err := fmt.Sscanf(notification.Extra, "%s|%s", &notifPostID, &content); err != nil {
 					log.Printf("Error parsing notification.Extra: %v\n", err)
 				}
-
-				// fmt.Sscanf(notification.Extra, "%s|%s", &notifPostID, &content)
 
 				// Если подписка на нужный пост, отправляем в канал
 				if notifPostID == postID {

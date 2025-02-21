@@ -19,7 +19,6 @@ type MemoryStorage struct {
 	mu            sync.RWMutex
 }
 
-// NewMemoryStorage создает новое in-memory хранилище
 func NewMemoryStorage() *MemoryStorage {
 	return &MemoryStorage{
 		posts:         make(map[string]models.Post),
@@ -28,7 +27,6 @@ func NewMemoryStorage() *MemoryStorage {
 	}
 }
 
-// GetAllPosts возвращает все посты
 func (s *MemoryStorage) GetAllPosts() ([]models.Post, error) {
 	s.mu.RLock()
 	defer s.mu.RUnlock()
@@ -47,7 +45,6 @@ func (s *MemoryStorage) GetAllPosts() ([]models.Post, error) {
 	return result, nil
 }
 
-// GetPostByID возвращает пост по ID
 func (s *MemoryStorage) GetPostByID(id string) (*models.Post, error) {
 	s.mu.RLock()
 	defer s.mu.RUnlock()
@@ -61,7 +58,6 @@ func (s *MemoryStorage) GetPostByID(id string) (*models.Post, error) {
 	return &post, nil
 }
 
-// AddPost добавляет новый пост
 func (s *MemoryStorage) AddPost(title, content string, allowComments bool) (models.Post, error) {
 	s.mu.Lock()
 	defer s.mu.Unlock()
@@ -77,7 +73,6 @@ func (s *MemoryStorage) AddPost(title, content string, allowComments bool) (mode
 	return post, nil
 }
 
-// AddComment добавляет комментарий в память
 func (s *MemoryStorage) AddComment(postID string, parentID *string, content string) (*models.Comment, error) {
 	s.mu.Lock()
 	defer s.mu.Unlock()
@@ -130,13 +125,12 @@ func (s *MemoryStorage) AddComment(postID string, parentID *string, content stri
 	return &comment, nil
 }
 
-// GetCommentsByPostID возвращает комментарии к посту
 func (s *MemoryStorage) GetCommentsByPostID(postID string, limit, offset int) ([]*models.Comment, error) {
 	s.mu.RLock()
 	defer s.mu.RUnlock()
 
 	log.Printf("Getting comment by post id %s", postID)
-	// Проверка на существование поста
+
 	if _, exists := s.posts[postID]; !exists {
 		log.Println("Post not found")
 		return nil, errors.New("post not found")
@@ -165,7 +159,6 @@ func (s *MemoryStorage) GetCommentsByPostID(postID string, limit, offset int) ([
 	return result, nil
 }
 
-// SubscribeToComments подписка на комментарии для поста
 func (s *MemoryStorage) SubscribeToComments(postID string) (<-chan *models.Comment, error) {
 	s.mu.Lock()
 	defer s.mu.Unlock()

@@ -17,7 +17,6 @@ type Resolver struct {
 	subscriptions map[string][]chan *Comment
 }
 
-// AddPost is the resolver for the addPost field.
 func (r *mutationResolver) AddPost(ctx context.Context, title string, content string, allowComments bool) (*Post, error) {
 	log.Printf("Adding post: title=%s", title)
 	modelPost, err := r.Storage.AddPost(title, content, allowComments)
@@ -41,7 +40,6 @@ func (r *mutationResolver) AddPost(ctx context.Context, title string, content st
 	return post, nil
 }
 
-// Posts is the resolver for the posts field.
 func (r *queryResolver) Posts(ctx context.Context) ([]*Post, error) {
 	log.Println("Fetching all posts")
 	modelPosts, err := r.Storage.GetAllPosts()
@@ -64,7 +62,6 @@ func (r *queryResolver) Posts(ctx context.Context) ([]*Post, error) {
 	return posts, nil
 }
 
-// Post is the resolver for the post field.
 func (r *queryResolver) Post(ctx context.Context, id string) (*Post, error) {
 	log.Printf("Fetching post with ID: %s", id)
 	modelPost, err := r.Storage.GetPostByID(id)
@@ -149,7 +146,6 @@ func (r *queryResolver) Comments(ctx context.Context, postID string, limit, offs
 	return comments, nil
 }
 
-// Subscription resolver: подписка на новые комментарии
 func (r *subscriptionResolver) CommentAdded(ctx context.Context, postID string) (<-chan *Comment, error) {
 	log.Printf("Subscribing to comments for post ID: %s", postID)
 	modelCh, err := r.Storage.SubscribeToComments(postID)

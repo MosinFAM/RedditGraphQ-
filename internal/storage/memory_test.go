@@ -12,7 +12,6 @@ func TestGetAllPosts_Empty(t *testing.T) {
 
 	posts, err := storage.GetAllPosts()
 
-	// Assert что сообщения не найдены и возвращается ошибка
 	assert.Error(t, err)
 	assert.Nil(t, posts)
 }
@@ -25,7 +24,6 @@ func TestGetAllPosts_ExistingPosts(t *testing.T) {
 
 	posts, err := storage.GetAllPosts()
 
-	// Assert что сообщения найдены и нет ошибок
 	assert.NoError(t, err)
 	assert.Len(t, posts, 1)
 	assert.Equal(t, "Post 1", posts[0].Title)
@@ -36,7 +34,6 @@ func TestGetPostByID_NotFound(t *testing.T) {
 
 	post, err := storage.GetPostByID("nonexistent-id")
 
-	// Assert что сообщение не найдено и возвращается ошибка
 	assert.Error(t, err)
 	assert.Nil(t, post)
 }
@@ -49,7 +46,6 @@ func TestGetPostByID_Found(t *testing.T) {
 
 	fetchedPost, err := storage.GetPostByID(post.ID)
 
-	// Assert что сообщение найдено и возвращено правильно
 	assert.NoError(t, err)
 	assert.Equal(t, post.ID, fetchedPost.ID)
 	assert.Equal(t, post.Title, fetchedPost.Title)
@@ -60,7 +56,6 @@ func TestAddPost(t *testing.T) {
 
 	post, err := storage.AddPost("Post 1", "Content", true)
 
-	// Assert no error и пост правильно добавлен
 	assert.NoError(t, err)
 	assert.NotEmpty(t, post.ID)
 	assert.Equal(t, "Post 1", post.Title)
@@ -72,7 +67,6 @@ func TestAddComment_NoPost(t *testing.T) {
 
 	comment, err := storage.AddComment("nonexistent-post-id", nil, "Test comment")
 
-	// Assert an error and nil комментарий
 	assert.Error(t, err)
 	assert.Nil(t, comment)
 }
@@ -85,7 +79,6 @@ func TestAddComment_CommentsDisabled(t *testing.T) {
 
 	comment, err := storage.AddComment(post.ID, nil, "Test comment")
 
-	// Assert an error and nil комментарий
 	assert.Error(t, err)
 	assert.Nil(t, comment)
 }
@@ -98,7 +91,6 @@ func TestAddComment_Success(t *testing.T) {
 
 	comment, err := storage.AddComment(post.ID, nil, "Test comment")
 
-	// Assert no error и комментарий добавлен правильно
 	assert.NoError(t, err)
 	assert.NotEmpty(t, comment.ID)
 	assert.Equal(t, "Test comment", comment.Content)
@@ -114,7 +106,6 @@ func TestAddComment_LongContent(t *testing.T) {
 	longContent := string(make([]byte, 2001)) // Exceeding 2000 chars
 	comment, err := storage.AddComment(post.ID, nil, longContent)
 
-	// Assert error, комментарий слишком длинный
 	assert.Error(t, err)
 	assert.Nil(t, comment)
 }
@@ -124,7 +115,6 @@ func TestGetCommentsByPostID_NotFound(t *testing.T) {
 
 	comments, err := storage.GetCommentsByPostID("nonexistent-post-id", 10, 0)
 
-	// Assert error, пост не существует
 	assert.Error(t, err)
 	assert.Nil(t, comments)
 }
@@ -140,7 +130,6 @@ func TestGetCommentsByPostID_Success(t *testing.T) {
 
 	comments, err := storage.GetCommentsByPostID(post.ID, 10, 0)
 
-	// Assert no error и комментарий возвращается правильно
 	assert.NoError(t, err)
 	assert.Len(t, comments, 1)
 	assert.Equal(t, "Test comment", comments[0].Content)

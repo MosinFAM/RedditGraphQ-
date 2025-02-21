@@ -11,7 +11,6 @@ import (
 	"github.com/stretchr/testify/assert"
 )
 
-// Тест AddPost
 func TestAddPost(t *testing.T) {
 	mockStorage := new(storage.MockStorage)
 	resolver := &mutationResolver{&Resolver{Storage: mockStorage}}
@@ -27,7 +26,6 @@ func TestAddPost(t *testing.T) {
 	mockStorage.AssertExpectations(t)
 }
 
-// Тест, когда не удалось добавить пост
 func TestAddPost_Failure(t *testing.T) {
 	mockStorage := new(storage.MockStorage)
 	resolver := &mutationResolver{&Resolver{Storage: mockStorage}}
@@ -41,7 +39,6 @@ func TestAddPost_Failure(t *testing.T) {
 	mockStorage.AssertExpectations(t)
 }
 
-// Тест Posts
 func TestPosts(t *testing.T) {
 	mockStorage := new(storage.MockStorage)
 	resolver := &queryResolver{&Resolver{Storage: mockStorage}}
@@ -56,11 +53,11 @@ func TestPosts(t *testing.T) {
 	assert.NoError(t, err)
 	assert.Len(t, posts, 2)
 	assert.Equal(t, "Test Post 1", posts[0].Title)
+	assert.Equal(t, "Test Post 2", posts[1].Title)
 
 	mockStorage.AssertExpectations(t)
 }
 
-// Тест Post
 func TestPost(t *testing.T) {
 	mockStorage := new(storage.MockStorage)
 	resolver := &queryResolver{&Resolver{Storage: mockStorage}}
@@ -76,7 +73,6 @@ func TestPost(t *testing.T) {
 	mockStorage.AssertExpectations(t)
 }
 
-// Тест AddComment
 func TestAddComment(t *testing.T) {
 	mockStorage := new(storage.MockStorage)
 	resolver := &mutationResolver{&Resolver{Storage: mockStorage}}
@@ -93,7 +89,6 @@ func TestAddComment(t *testing.T) {
 	mockStorage.AssertExpectations(t)
 }
 
-// Тест Comments
 func TestComments(t *testing.T) {
 	mockStorage := new(storage.MockStorage)
 	resolver := &queryResolver{&Resolver{Storage: mockStorage}}
@@ -112,25 +107,20 @@ func TestComments(t *testing.T) {
 	mockStorage.AssertExpectations(t)
 }
 
-// Тест подписки на комментарии
 func TestCommentAdded(t *testing.T) {
 	mockStorage := new(storage.MockStorage)
 	resolver := &subscriptionResolver{&Resolver{Storage: mockStorage}}
 
-	// Создаём канал для подписки
 	commentCh := make(chan *models.Comment, 1)
 	mockStorage.On("SubscribeToComments", "1").Return(commentCh, nil)
 
-	// Запускаем подписку
 	subCh, err := resolver.CommentAdded(context.Background(), "1")
 	assert.NoError(t, err)
 	assert.NotNil(t, subCh)
 
-	// Отправляем комментарий в канал
 	expectedComment := &models.Comment{ID: "1", PostID: "1", Content: "New Comment"}
 	commentCh <- expectedComment
 
-	// Проверяем, что он получен подписчиком
 	receivedComment := <-subCh
 	assert.Equal(t, "New Comment", receivedComment.Content)
 
