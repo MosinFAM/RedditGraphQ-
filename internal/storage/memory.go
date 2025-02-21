@@ -37,7 +37,8 @@ func (s *MemoryStorage) GetAllPosts() ([]models.Post, error) {
 		log.Println("No posts found")
 		return nil, errors.New("no posts found")
 	}
-	var result []models.Post
+
+	result := make([]models.Post, 0, len(s.posts))
 	for _, post := range s.posts {
 		result = append(result, post)
 	}

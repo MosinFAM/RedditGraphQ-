@@ -1,4 +1,3 @@
--- +goose Up
 CREATE TABLE IF NOT EXISTS posts (
     id UUID PRIMARY KEY,
     title TEXT NOT NULL,
@@ -13,7 +12,3 @@ CREATE TABLE IF NOT EXISTS comments (
     content TEXT NOT NULL CHECK (LENGTH(content) <= 2000),
     created_at TIMESTAMP DEFAULT NOW()
 );
-
--- +goose Down
-DROP TABLE IF EXISTS comments;
-DROP TABLE IF EXISTS posts;

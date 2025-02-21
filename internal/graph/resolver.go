@@ -50,7 +50,7 @@ func (r *queryResolver) Posts(ctx context.Context) ([]*Post, error) {
 		return nil, err
 	}
 
-	var posts []*Post
+	posts := make([]*Post, 0, len(modelPosts))
 
 	for _, modelPost := range modelPosts {
 		post := &Post{
@@ -80,7 +80,6 @@ func (r *queryResolver) Post(ctx context.Context, id string) (*Post, error) {
 		AllowComments: modelPost.AllowComments,
 	}
 	return post, nil
-
 }
 
 func (r *mutationResolver) AddComment(ctx context.Context, postID string, parentID *string, content string) (*Comment, error) {
