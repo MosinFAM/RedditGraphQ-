@@ -26,16 +26,13 @@ func main() {
 		if err != nil {
 			log.Fatal("Failed to connect to DB:", err)
 		}
+
 		dsn := os.Getenv("DATABASE_URL")
 		if dsn == "" {
 			log.Fatal("DATABASE_URL is not set")
 		}
-		pgStore := storage.NewPostgresStorage(dbConn, dsn)
-		if err := pgStore.InitDB(); err != nil {
-			log.Fatal("Failed to initialize DB:", err)
-		}
 
-		store = pgStore
+		store = storage.NewPostgresStorage(dbConn, dsn)
 	} else {
 		store = storage.NewMemoryStorage()
 	}

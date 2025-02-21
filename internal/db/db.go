@@ -6,6 +6,7 @@ import (
 	"os"
 
 	_ "github.com/lib/pq"
+	"github.com/pressly/goose"
 )
 
 func Connect() (*sql.DB, error) {
@@ -21,5 +22,10 @@ func Connect() (*sql.DB, error) {
 	}
 
 	log.Println("Connected to PostgreSQL successfully!")
+
+	if err := goose.Up(db, "migrations"); err != nil {
+		log.Fatalf("Failed to apply migrations: %v", err)
+		return nil, err
+	}
 	return db, nil
 }
