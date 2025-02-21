@@ -31,6 +31,18 @@
 
 •	Покрытие реализованного функционала unit-тестами.
 
+#### `make build`
+
+Создаёт приложение в bin/redditclone.
+
+#### `make test`
+
+Запускает тесты.
+
+#### `make lint`
+
+Запускает линтер.
+
 ## Запуск контейнера
 
 ```bash
@@ -39,7 +51,7 @@ STORAGE_TYPE=postgres docker compose -f build/docker-compose.yml up -d --build
 
 По умолчанию STORAGE_TYPE=in-memory.
 
-## Тестирование
+## API
 
 1. Создание поста
 
