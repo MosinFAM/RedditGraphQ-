@@ -183,7 +183,11 @@ func (s *PostgresStorage) SubscribeToComments(postID string) (<-chan *models.Com
 
 				// Разбираем сообщение "postID|content"
 				var notifPostID, content string
-				fmt.Sscanf(notification.Extra, "%s|%s", &notifPostID, &content)
+				if _, err := fmt.Sscanf(notification.Extra, "%s|%s", &notifPostID, &content); err != nil {
+					log.Printf("Error parsing notification.Extra: %v\n", err)
+				}
+
+				// fmt.Sscanf(notification.Extra, "%s|%s", &notifPostID, &content)
 
 				// Если подписка на нужный пост, отправляем в канал
 				if notifPostID == postID {

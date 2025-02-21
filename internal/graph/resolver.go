@@ -132,7 +132,7 @@ func (r *queryResolver) Comments(ctx context.Context, postID string, limit, offs
 		return nil, err
 	}
 
-	var comments []*Comment
+	comments := make([]*Comment, 0, len(modelComments))
 
 	for _, modelComment := range modelComments {
 		comment := &Comment{
